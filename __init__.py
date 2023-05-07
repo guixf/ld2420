@@ -65,7 +65,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_DETECTION_GATE_MIN, default=1): cv.int_range(
                 min=0, max=15
             ),
-            cv.Optional(CONF_PRESENCE_TIME_WINDOW, default="5s"): cv.All(
+            cv.Optional(CONF_PRESENCE_TIME_WINDOW, default="120s"): cv.All(
                 cv.positive_time_period_seconds,
                 cv.Range(max=cv.TimePeriod(seconds=32767)),
             ),
