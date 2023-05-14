@@ -29,15 +29,15 @@ void LD2420Component::dump_config() {
   LOG_SENSOR("  ", "Still Energy", this->still_target_energy_sensor_);
   LOG_SENSOR("  ", "Detection Distance", this->detection_distance_sensor_);
 #endif
-  //this->set_config_mode_(true);
-  //this->get_firmware_version_();
+  this->set_config_mode_(true);
+  this->get_firmware_version_();
   this->set_config_mode_(false);
   ESP_LOGCONFIG(TAG, "  Firmware Version : %7s",this->ld2420_firmware_ver_);
 }
 
 void LD2420Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up LD2420...");
-  //this->set_config_mode_(true);
+  this->set_config_mode_(true);
   this->get_firmware_version_();
   this->set_min_max_distances_timeout_(this->max_gate_distance_, this->min_gate_distance_, this->timeout_);
   // Configure Gates sensitivity
@@ -296,7 +296,7 @@ void LD2420Component::send_cmd_from_array_(uint8_t* cmdArray, cmd_frame_t frame)
   }
   memcpy(cmdArray + frame.length, &frame.footer, sizeof(frame.footer));
   frame.length += sizeof(frame.footer);
-  for (uint8_t index; index < frame.length; index++) {
+  for (uint8_t index=0; index < frame.length; index++) {
     this->write_byte(cmdArray[index]);
   }
 #ifdef LD2420_LOG_VERY_VERBOSE
@@ -337,7 +337,7 @@ void LD2420Component::get_firmware_version_(void) {
   cmd_frame.footer = CMD_FRAME_FOOTER;
 
   ESP_LOGV(TAG,"Sending get firmware version command: %2X",cmd_frame.command);
-  send_cmd_from_array_(cmdArray, cmd_frame);
+  //send_cmd_from_array_(cmdArray, cmd_frame);
 }
 
 void LD2420Component::set_min_max_distances_timeout_(uint32_t max_gate_distance, uint32_t min_gate_distance, uint32_t timeout) {
