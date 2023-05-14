@@ -46,7 +46,7 @@ static const uint16_t CMD_RESTART = 0x00A3;
 // Register address values
 static const uint16_t CMD_MIN_GATE_REG =  0x0000;
 static const uint16_t CMD_MAX_GATE_REG =  0x0001;
-static const uint16_t CMD_TIMEOUT_REG =   0x0004;
+static const uint16_t CMD_TIMEOUT_REG =   0x0002;
 static const uint16_t CMD_MOVE_GATE[16] =  {0x0010, 0x0011, 0x0012, 0x0013,
                                             0x0014, 0x0015, 0x0016, 0x0017,
                                             0x0018, 0x0019, 0x001A, 0x001B,
