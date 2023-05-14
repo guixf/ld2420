@@ -11,7 +11,7 @@ MULTI_CONF = True
 
 ld2420_ns = cg.esphome_ns.namespace("ld2420")
 LD2420Component = ld2420_ns.class_("LD2420Component", cg.Component, uart.UARTDevice)
-LD2420Restart = ld2420_ns.class_("LD2420Restart", automation.Action)
+#LD2420Restart = ld2420_ns.class_("LD2420Restart", automation.Action)
 CONF_LD2420_ID = "ld2420_id"
 
 
