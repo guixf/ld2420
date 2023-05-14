@@ -289,7 +289,7 @@ void LD2420Component::send_cmd_from_array_(uint8_t* cmdArray, cmd_frame_t frame)
   memcpy(cmdArray + frame.length, &frame.command, sizeof(frame.command));
   frame.length += sizeof(frame.command);
   if (frame.data_length > 2) { // Minimun 2 for the command byte, otherwise there is additional data
-    for (uint8_t index; index < frame.data_length - 2 ; index++) {
+    for (uint8_t index=0; index < frame.data_length - 2 ; index++) {
       memcpy(cmdArray + frame.length, &frame.data[index], sizeof(frame.data[index]));
       frame.length += sizeof(frame.data[index]);
     }
