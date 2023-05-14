@@ -102,7 +102,7 @@ void LD2420Component::handle_periodic_data_(uint8_t *buffer, int len) {
     Reduce data update rate to prevent home assistant database size grow fast
   */
   int32_t current_millis = millis();
-  if (current_millis - last_periodic_millis < 1000)
+  if (current_millis - last_periodic_millis < 100)
     return;
   last_periodic_millis = current_millis;
 
@@ -188,7 +188,7 @@ void LD2420Component::handle_normal_mode_(uint8_t *inbuf, int len) {
     Reduce data update rate to prevent home assistant database size grow fast
   */
   int32_t current_millis = millis();
-  if (current_millis - last_normal_periodic_millis < 1000)
+  if (current_millis - last_normal_periodic_millis < 100)
     return;
   last_normal_periodic_millis = current_millis;
 
