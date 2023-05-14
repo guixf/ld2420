@@ -14,7 +14,7 @@
 namespace esphome {
 namespace ld2420 {
 
-#define CHECK_BIT(var, pos) (((var) >> (pos)) & 1)
+//#define LD2420_LOG_VERY_VERBOSE   // Provides uart hex I/O logged as readable strings
 
 // Commands
 static const uint16_t CMD_PROTOCOL_VER = 0x0001;
@@ -27,7 +27,7 @@ static const uint16_t CMD_PARM_HIGH_TRESH = 0x0012;
 static const uint16_t CMD_PARM_LOW_TRESH = 0x0021;
 static const uint16_t CMD_WRITE_ABD_PARAM = 0x0007;
 static const uint16_t CMD_READ_ABD_PARAM = 0x0008;
-static const uint16_t CMD_WRITE_SYS_PARAM = 0x00012;
+static const uint16_t CMD_WRITE_SYS_PARAM = 0x0012;
 static const uint16_t CMD_READ_SYS_PARAM = 0x0013;
 static const uint16_t CMD_READ_SERIAL_NUM = 0x0011;
 
@@ -46,7 +46,7 @@ static const uint16_t CMD_RESTART = 0x00A3;
 // Register address values
 static const uint16_t CMD_MIN_GATE_REG =  0x0000;
 static const uint16_t CMD_MAX_GATE_REG =  0x0001;
-static const uint16_t CMD_TIMEOUT_REG =   0x0002;
+static const uint16_t CMD_TIMEOUT_REG =   0x0004;
 static const uint16_t CMD_MOVE_GATE[16] =  {0x0010, 0x0011, 0x0012, 0x0013,
                                             0x0014, 0x0015, 0x0016, 0x0017,
                                             0x0018, 0x0019, 0x001A, 0x001B,
@@ -62,11 +62,9 @@ static const uint32_t CMD_FRAME_FOOTER = 0x01020304;
 static const uint8_t CMD_FRAME_HEADER_OLD[4] = {0xFD, 0xFC, 0xFB, 0xFA};
 static const uint8_t CMD_FRAME_END[4] = {0x04, 0x03, 0x02, 0x01};
 // Data Header & Footer
-static const uint8_t DATA_FRAME_HEADER[4] = {0xFD, 0xFC, 0xFB, 0xFA};
-static const uint8_t DATA_FRAME_END[4] = {0x04, 0x03, 0x02, 0x01};
-//static const uint8_t DATA_FRAME_HEADER[4] = {0xF4, 0xF3, 0xF2, 0xF1};
-//static const uint8_t DATA_FRAME_END[4] = {0xF8, 0xF7, 0xF6, 0xF5};
-  /*
+static const uint8_t DATA_FRAME_HEADER[4] = {0xF4, 0xF3, 0xF2, 0xF1};
+static const uint8_t DATA_FRAME_END[4] = {0xF8, 0xF7, 0xF6, 0xF5};
+/*
 Data Type: 6th byte
 Target states: 9th byte
     Moving target distance: 10~11th bytes
@@ -123,6 +121,7 @@ public:
   void set_moving_target_sensor(binary_sensor::BinarySensor *sens) { this->moving_binary_sensor_ = sens; };
   void set_still_target_sensor(binary_sensor::BinarySensor *sens) { this->still_binary_sensor_ = sens; };
 #endif
+  float get_setup_priority() const override;
   void send_cmd_from_array_(uint8_t* cmdArray, cmd_frame_t cmd_frame);
   void get_firmware_version_(void);
   void set_object_range_(uint16_t range) {this->object_range_ = range; };
@@ -130,14 +129,14 @@ public:
   void set_timeout(uint16_t value) { this->timeout_ = value; };
   void set_max_gate(uint8_t value) { this->max_gate_distance_ = value; };
   void set_min_gate(uint8_t value) { this->min_gate_distance_ = value; };
-  void set_range_config(int rg0_move, int rg0_still, int rg1_move, int rg1_still,
-                        int rg2_move, int rg2_still, int rg3_move, int rg3_still,
-                        int rg4_move, int rg4_still, int rg5_move, int rg5_still,
-                        int rg6_move, int rg6_still, int rg7_move, int rg7_still,
-                        int rg8_move, int rg8_still, int rg9_move, int rg9_still,
-                        int rg10_move, int rg10_still, int rg11_move, int rg11_still,
-                        int rg12_move, int rg12_still, int rg13_move, int rg13_still,
-                        int rg14_move, int rg14_still, int rg15_move, int rg15_still) {
+  void set_range_config(uint32_t rg0_move, uint32_t rg0_still, uint32_t rg1_move, uint32_t rg1_still,
+                        uint32_t rg2_move, uint32_t rg2_still, uint32_t rg3_move, uint32_t rg3_still,
+                        uint32_t rg4_move, uint32_t rg4_still, uint32_t rg5_move, uint32_t rg5_still,
+                        uint32_t rg6_move, uint32_t rg6_still, uint32_t rg7_move, uint32_t rg7_still,
+                        uint32_t rg8_move, uint32_t rg8_still, uint32_t rg9_move, uint32_t rg9_still,
+                        uint32_t rg10_move, uint32_t rg10_still, uint32_t rg11_move, uint32_t rg11_still,
+                        uint32_t rg12_move, uint32_t rg12_still, uint32_t rg13_move, uint32_t rg13_still,
+                        uint32_t rg14_move, uint32_t rg14_still, uint32_t rg15_move, uint32_t rg15_still) {
     this->rg0_move_threshold_ = rg0_move;
     this->rg0_still_threshold_ = rg0_still;
     this->rg1_move_threshold_ = rg1_move;
@@ -189,8 +188,9 @@ public:
   std::vector<uint8_t> rx_buffer_;
   int two_byte_to_int_(char firstbyte, char secondbyte) { return (int16_t) (secondbyte << 8) + firstbyte; }
   void send_command_(uint8_t command_str, uint8_t *command_value, int command_value_len);
+  bool is_present_() { return presence_; }
   void set_min_max_distances_timeout_(uint32_t max_gate_distance, uint32_t min_gate_distance, uint32_t timeout);
-  void set_gate_thresholds_(uint8_t gate, uint16_t move_sens, uint16_t still_sens);
+  void set_gate_thresholds_(uint8_t gate, uint32_t move_sens, uint32_t still_sens);
   void set_config_mode_(bool enable);
   void handle_periodic_data_(uint8_t *buffer, int len);
   void received_frame_handler_(uint8_t *buffer, int len);
@@ -204,10 +204,11 @@ public:
   uint32_t max_gate_distance_;
   uint32_t min_gate_distance_;
   uint16_t object_range_;
+  bool presence_{false};
   char ld2420_firmware_ver_[8];
-  bool presence_;
 
-  uint16_t rg0_move_threshold_, rg0_still_threshold_, rg1_move_threshold_, rg1_still_threshold_,
+
+  uint32_t rg0_move_threshold_, rg0_still_threshold_, rg1_move_threshold_, rg1_still_threshold_,
       rg2_move_threshold_, rg2_still_threshold_, rg3_move_threshold_, rg3_still_threshold_,
       rg4_move_threshold_, rg4_still_threshold_, rg5_move_threshold_, rg5_still_threshold_,
       rg6_move_threshold_, rg6_still_threshold_, rg7_move_threshold_, rg7_still_threshold_,
