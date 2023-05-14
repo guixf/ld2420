@@ -73,6 +73,7 @@ void LD2420Component::loop() {
 void LD2420Component::handle_periodic_data_(uint8_t *buffer, int len) {
   if (len < 12)
     return;  // 4 cmd_frame start bytes + 2 length bytes + 1 data end byte + 1 crc byte + 4 cmd_frame end bytes
+//  if (buffer[0] != 0xF8 || buffer[1] != 0xF7 || buffer[2] != 0xF6 || buffer[3] != 0xF5)  // check 4 cmd_frame start bytes
   if (buffer[0] != 0xF8 || buffer[1] != 0xF7 || buffer[2] != 0xF6 || buffer[3] != 0xF5)  // check 4 cmd_frame start bytes
     return;
   if (buffer[7] != HEAD || buffer[len - 6] != END || buffer[len - 5] != CHECK)  // Check constant values
@@ -188,7 +189,7 @@ void LD2420Component::handle_normal_mode_(uint8_t *inbuf, int len) {
     Reduce data update rate to prevent home assistant database size grow fast
   */
   int32_t current_millis = millis();
-  if (current_millis - last_normal_periodic_millis < 100)
+  if (current_millis - last_normal_periodic_millis < 1000)
     return;
   last_normal_periodic_millis = current_millis;
 
