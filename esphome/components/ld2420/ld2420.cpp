@@ -13,6 +13,8 @@ namespace ld2420 {
 
 static const char *const TAG = "ld2420";
 
+float LD2420Component::get_setup_priority() const { return setup_priority::BUS; }
+
 void LD2420Component::dump_config() {
   ESP_LOGCONFIG(TAG, "LD2420:");
 #ifdef USE_BINARY_SENSOR
@@ -73,8 +75,7 @@ void LD2420Component::loop() {
 void LD2420Component::handle_periodic_data_(uint8_t *buffer, int len) {
   if (len < 12)
     return;  // 4 cmd_frame start bytes + 2 length bytes + 1 data end byte + 1 crc byte + 4 cmd_frame end bytes
-//  if (buffer[0] != 0xF8 || buffer[1] != 0xF7 || buffer[2] != 0xF6 || buffer[3] != 0xF5)  // check 4 cmd_frame start bytes
-  if (buffer[0] != 0xF8 || buffer[1] != 0xF7 || buffer[2] != 0xF6 || buffer[3] != 0xF5)  // check 4 cmd_frame start bytes
+  if (buffer[0] != 0xF4 || buffer[1] != 0xF3 || buffer[2] != 0xF2 || buffer[3] != 0xF1)  // check 4 cmd_frame start bytes
     return;
   if (buffer[7] != HEAD || buffer[len - 6] != END || buffer[len - 5] != CHECK)  // Check constant values
     return;  // data head=0xAA, data end=0x55, crc=0x00
@@ -103,7 +104,7 @@ void LD2420Component::handle_periodic_data_(uint8_t *buffer, int len) {
     Reduce data update rate to prevent home assistant database size grow fast
   */
   int32_t current_millis = millis();
-  if (current_millis - last_periodic_millis < 100)
+  if (current_millis - last_periodic_millis < 1000)
     return;
   last_periodic_millis = current_millis;
 
@@ -196,8 +197,8 @@ void LD2420Component::handle_normal_mode_(uint8_t *inbuf, int len) {
 
 #ifdef USE_BINARY_SENSOR
   if (this->presence_binary_sensor_ != nullptr) {
-      if (this->presence_binary_sensor_->state != this->presence_) {
-      this->presence_binary_sensor_->publish_state(this->presence_);
+      if (this->presence_binary_sensor_->state != this->is_present_()) {
+      this->presence_binary_sensor_->publish_state(this->is_present_());
     }
   }
 #endif
@@ -213,38 +214,37 @@ void LD2420Component::handle_normal_mode_(uint8_t *inbuf, int len) {
 
 
 void LD2420Component::handle_ack_data_(uint8_t *buffer, int len) {
-  ESP_LOGV(TAG, "Handling ACK DATA for COMMAND");
-  if (len < 10) {
-    ESP_LOGE(TAG, "Error with last command : incorrect length");
-    return;
-  }
-  if (buffer[0] != 0xFD || buffer[1] != 0xFC || buffer[2] != 0xFB || buffer[3] != 0xFA) {  // check 4 cmd_frame start bytes
-    ESP_LOGE(TAG, "Error with last command : incorrect Header");
+  if (len < 12) {
+    ESP_LOGE(TAG, "LD2420 acknowledge response frame too short with %u bytes.", len);
     return;
   }
   if (buffer[COMMAND_STATUS] != 0x01) {
-    ESP_LOGE(TAG, "Error with last command : status != 0x01");
+    ESP_LOGE(TAG, "LD2420 acknowledge status byte was %u, command failed.", buffer[COMMAND_STATUS]);
     return;
   }
-  if (this->two_byte_to_int_(buffer[8], buffer[9]) != 0x00) {
-    ESP_LOGE(TAG, "Error with last command , last buffer was: %u , %u", buffer[8], buffer[9]);
-    return;
-  }
+
+#ifdef LD2420_LOG_VERY_VERBOSE
+  ESP_LOGVV(TAG,"");
+  printf("UART Tx: ");
   for (int i = 0; i < len; i++) {
     printf("%02X ", buffer[i]);
   }
   printf("\n");
+#endif
 
   switch (buffer[COMMAND]) {
     case lowbyte(CMD_ENABLE_CONF):
-      ESP_LOGV(TAG, "Handled Enable conf command");
+      ESP_LOGV(TAG, "LD2420 acknowledged config enable: %2X", CMD_ENABLE_CONF);
       break;
     case lowbyte(CMD_DISABLE_CONF):
-      ESP_LOGV(TAG, "Handled Disabled conf command");
+      ESP_LOGV(TAG, "LD2420 acknowledged config disable: %2X", CMD_DISABLE_CONF);
+      break;
+    case lowbyte(CMD_WRITE_ABD_PARAM):
+      ESP_LOGV(TAG, "LD2420 acknowledged write gate parameters: %2X", CMD_WRITE_ABD_PARAM);
       break;
     case lowbyte(CMD_READ_VERSION):
       memcpy(this->ld2420_firmware_ver_, &buffer[12], 6);
-      ESP_LOGI(TAG, "LD2420 module firmware: %7s",this->ld2420_firmware_ver_);
+      ESP_LOGV(TAG, "Read LD2420 module firmware ver: %7s",this->ld2420_firmware_ver_);
     break;
       default:
       break;
@@ -262,7 +262,7 @@ void LD2420Component::readline_(int readch, uint8_t *buffer, int len) {
       pos = 0;
     }
     if (pos >= 4) {
-      if (buffer[pos - 4] == 0xF4 && buffer[pos - 3] == 0xF3 && buffer[pos - 2] == 0xF2 && buffer[pos - 1] == 0xF1) {
+      if (buffer[pos - 4] == 0xF8 && buffer[pos - 3] == 0xF7 && buffer[pos - 2] == 0xF6 && buffer[pos - 1] == 0xF5) {
         ESP_LOGV(TAG, "Will handle Periodic Data");
         this->handle_periodic_data_(buffer, pos);
         // this->received_frame_handler_(buffer,pos);
@@ -289,7 +289,7 @@ void LD2420Component::send_cmd_from_array_(uint8_t* cmdArray, cmd_frame_t frame)
   memcpy(cmdArray + frame.length, &frame.command, sizeof(frame.command));
   frame.length += sizeof(frame.command);
   if (frame.data_length > 2) { // Minimun 2 for the command byte, otherwise there is additional data
-    for (uint8_t index=0; index < frame.data_length - 2 ; index++) {
+    for (uint8_t index; index < frame.data_length - 2 ; index++) {
       memcpy(cmdArray + frame.length, &frame.data[index], sizeof(frame.data[index]));
       frame.length += sizeof(frame.data[index]);
     }
@@ -299,11 +299,14 @@ void LD2420Component::send_cmd_from_array_(uint8_t* cmdArray, cmd_frame_t frame)
   for (uint8_t index; index < frame.length; index++) {
     this->write_byte(cmdArray[index]);
   }
-
+#ifdef LD2420_LOG_VERY_VERBOSE
+  ESP_LOGVV(TAG,"");
+  printf("UART Tx: ");
   for (int i = 0; i < frame.length; i++) {
     printf("%02X ", cmdArray[i]);
   }
   printf("\n");
+#endif
 }
 
 void LD2420Component::received_frame_handler_(uint8_t *buffer, int len) {
@@ -364,10 +367,9 @@ void LD2420Component::set_min_max_distances_timeout_(uint32_t max_gate_distance,
 
   ESP_LOGV(TAG,"Sending global gate detect min max and delay params: %2X",reg_frame.command);
   send_cmd_from_array_(cmdArray, reg_frame);
-
 }
 
-void LD2420Component::set_gate_thresholds_(uint8_t gate, uint16_t move_sens, uint16_t still_sens) {
+void LD2420Component::set_gate_thresholds_(uint8_t gate, uint32_t move_sens, uint32_t still_sens) {
 
   // Header H, Length L, Register R, Value V, Footer F
   // HH HH HH HH LL LL CC CC RR RR VV VV VV VV RR RR VV VV VV VV RR RR VV VV VV VV FF FF FF FF
@@ -380,14 +382,10 @@ void LD2420Component::set_gate_thresholds_(uint8_t gate, uint16_t move_sens, uin
   reg_frame.data_length = 0;
   reg_frame.header = CMD_FRAME_HEADER;
   reg_frame.command = CMD_WRITE_ABD_PARAM;
-  memcpy(&reg_frame.data[reg_frame.data_length], &CMD_PARM_HIGH_TRESH, sizeof(CMD_PARM_HIGH_TRESH)); // Parameter: High signal threshold aka move sence
-  reg_frame.data_length += sizeof(CMD_PARM_HIGH_TRESH);
   memcpy(&reg_frame.data[reg_frame.data_length], &move_gate, sizeof(move_gate));
   reg_frame.data_length += sizeof(move_gate);
   memcpy(&reg_frame.data[reg_frame.data_length], &move_sens, sizeof(move_sens));
   reg_frame.data_length += sizeof(move_sens);
-  memcpy(&reg_frame.data[reg_frame.data_length], &CMD_PARM_LOW_TRESH, sizeof(CMD_PARM_LOW_TRESH)); // Parameter: Low signal threshold aka still sence
-  reg_frame.data_length += sizeof(CMD_PARM_LOW_TRESH);
   memcpy(&reg_frame.data[reg_frame.data_length], &still_gate, sizeof(still_gate));
   reg_frame.data_length += sizeof(still_gate);
     memcpy(&reg_frame.data[reg_frame.data_length], &still_sens, sizeof(still_sens));
@@ -395,7 +393,6 @@ void LD2420Component::set_gate_thresholds_(uint8_t gate, uint16_t move_sens, uin
   reg_frame.footer = CMD_FRAME_FOOTER;
   ESP_LOGV(TAG,"Sending gate sensitivity params: %2X",reg_frame.command);
   send_cmd_from_array_(cmdArray, reg_frame);
-
 }
 
 }  // namespace ld2420
