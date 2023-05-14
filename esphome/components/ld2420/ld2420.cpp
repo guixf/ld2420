@@ -29,8 +29,8 @@ void LD2420Component::dump_config() {
   LOG_SENSOR("  ", "Still Energy", this->still_target_energy_sensor_);
   LOG_SENSOR("  ", "Detection Distance", this->detection_distance_sensor_);
 #endif
-  this->set_config_mode_(true);
-  this->get_firmware_version_();
+  //this->set_config_mode_(true);
+  //this->get_firmware_version_();
   this->set_config_mode_(false);
   ESP_LOGCONFIG(TAG, "  Firmware Version : %7s",this->ld2420_firmware_ver_);
 }
