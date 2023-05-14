@@ -73,7 +73,7 @@ void LD2420Component::loop() {
 void LD2420Component::handle_periodic_data_(uint8_t *buffer, int len) {
   if (len < 12)
     return;  // 4 cmd_frame start bytes + 2 length bytes + 1 data end byte + 1 crc byte + 4 cmd_frame end bytes
-  if (buffer[0] != 0xF4 || buffer[1] != 0xF3 || buffer[2] != 0xF2 || buffer[3] != 0xF1)  // check 4 cmd_frame start bytes
+  if (buffer[0] != 0xFD || buffer[1] != 0xFC || buffer[2] != 0xFB || buffer[3] != 0xFA)  // check 4 cmd_frame start bytes
     return;
   if (buffer[7] != HEAD || buffer[len - 6] != END || buffer[len - 5] != CHECK)  // Check constant values
     return;  // data head=0xAA, data end=0x55, crc=0x00
@@ -261,7 +261,7 @@ void LD2420Component::readline_(int readch, uint8_t *buffer, int len) {
       pos = 0;
     }
     if (pos >= 4) {
-      if (buffer[pos - 4] == 0xF8 && buffer[pos - 3] == 0xF7 && buffer[pos - 2] == 0xF6 && buffer[pos - 1] == 0xF5) {
+      if (buffer[pos - 4] == 0xFD && buffer[pos - 3] == 0xFC && buffer[pos - 2] == 0xFB && buffer[pos - 1] == 0xFA) {
         ESP_LOGV(TAG, "Will handle Periodic Data");
         this->handle_periodic_data_(buffer, pos);
         // this->received_frame_handler_(buffer,pos);
