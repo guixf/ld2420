@@ -261,7 +261,7 @@ void LD2420Component::readline_(int readch, uint8_t *buffer, int len) {
       pos = 0;
     }
     if (pos >= 4) {
-      if (buffer[pos - 4] == 0xFD && buffer[pos - 3] == 0xFC && buffer[pos - 2] == 0xFB && buffer[pos - 1] == 0xFA) {
+      if (buffer[pos - 4] == 0xF4 && buffer[pos - 3] == 0xF3 && buffer[pos - 2] == 0xF2 && buffer[pos - 1] == 0xF1) {
         ESP_LOGV(TAG, "Will handle Periodic Data");
         this->handle_periodic_data_(buffer, pos);
         // this->received_frame_handler_(buffer,pos);
