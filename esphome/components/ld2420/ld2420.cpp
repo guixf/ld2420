@@ -39,6 +39,7 @@ void LD2420Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up LD2420...");
   this->set_config_mode_(true);
   this->get_firmware_version_();
+  delay 1s;
   this->set_min_max_distances_timeout_(this->max_gate_distance_, this->min_gate_distance_, this->timeout_);
   // Configure Gates sensitivity
   this->set_gate_thresholds_(0, this->rg0_move_threshold_, this->rg0_still_threshold_);
