@@ -62,8 +62,10 @@ static const uint32_t CMD_FRAME_FOOTER = 0x01020304;
 static const uint8_t CMD_FRAME_HEADER_OLD[4] = {0xFD, 0xFC, 0xFB, 0xFA};
 static const uint8_t CMD_FRAME_END[4] = {0x04, 0x03, 0x02, 0x01};
 // Data Header & Footer
-static const uint8_t DATA_FRAME_HEADER[4] = {0xF4, 0xF3, 0xF2, 0xF1};
-static const uint8_t DATA_FRAME_END[4] = {0xF8, 0xF7, 0xF6, 0xF5};
+static const uint8_t DATA_FRAME_HEADER[4] = {0xFD, 0xFC, 0xFB, 0xFA};
+static const uint8_t DATA_FRAME_END[4] = {0x04, 0x03, 0x02, 0x01};
+//static const uint8_t DATA_FRAME_HEADER[4] = {0xF4, 0xF3, 0xF2, 0xF1};
+//static const uint8_t DATA_FRAME_END[4] = {0xF8, 0xF7, 0xF6, 0xF5};
 /*
 Data Type: 6th byte
 Target states: 9th byte
