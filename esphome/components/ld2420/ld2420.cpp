@@ -262,12 +262,13 @@ void LD2420Component::readline_(int readch, uint8_t *buffer, int len) {
       pos = 0;
     }
     if (pos >= 4) {
-      if (buffer[pos - 4] == 0xF8 && buffer[pos - 3] == 0xF7 && buffer[pos - 2] == 0xF6 && buffer[pos - 1] == 0xF5) {
-        ESP_LOGV(TAG, "Will handle Periodic Data");
-        this->handle_periodic_data_(buffer, pos);
+      //if (buffer[pos - 4] == 0xF8 && buffer[pos - 3] == 0xF7 && buffer[pos - 2] == 0xF6 && buffer[pos - 1] == 0xF5) {
+      //  ESP_LOGV(TAG, "Will handle Periodic Data");
+      //  this->handle_periodic_data_(buffer, pos);
         // this->received_frame_handler_(buffer,pos);
-        pos = 0;  // Reset position index ready for next time
-      } else if (buffer[pos - 4] == 0x04 && buffer[pos - 3] == 0x03 && buffer[pos - 2] == 0x02 && buffer[pos - 1] == 0x01) {
+      //  pos = 0;  // Reset position index ready for next time
+      //} else 
+      if (buffer[pos - 4] == 0x04 && buffer[pos - 3] == 0x03 && buffer[pos - 2] == 0x02 && buffer[pos - 1] == 0x01) {
         ESP_LOGV(TAG, "Will handle ACK Data");
         this->handle_ack_data_(buffer, pos);
         pos = 0;  // Reset position index ready for next time
