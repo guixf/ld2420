@@ -342,7 +342,7 @@ void LD2420Component::get_firmware_version_(void) {
   cmd_frame.footer = CMD_FRAME_FOOTER;
 
   ESP_LOGV(TAG,"Sending get firmware version command: %2X",cmd_frame.command);
-  send_cmd_from_array_(cmdArray, cmd_frame);
+  //send_cmd_from_array_(cmdArray, cmd_frame);
 }
 
 void LD2420Component::set_min_max_distances_timeout_(uint32_t max_gate_distance, uint32_t min_gate_distance, uint32_t timeout) {
