@@ -30,7 +30,9 @@ void LD2420Component::dump_config() {
   LOG_SENSOR("  ", "Detection Distance", this->detection_distance_sensor_);
 #endif
   this->set_config_mode_(true);
+  delay(500);
   this->get_firmware_version_();
+  delay(500);
   this->set_config_mode_(false);
   ESP_LOGCONFIG(TAG, "  Firmware Version : %7s",this->ld2420_firmware_ver_);
 }
@@ -38,8 +40,9 @@ void LD2420Component::dump_config() {
 void LD2420Component::setup() {
   ESP_LOGCONFIG(TAG, "Setting up LD2420...");
   this->set_config_mode_(true);
+  delay(500);
   this->get_firmware_version_();
-  delay(1000);
+  delay(500);
   this->set_min_max_distances_timeout_(this->max_gate_distance_, this->min_gate_distance_, this->timeout_);
   // Configure Gates sensitivity
   this->set_gate_thresholds_(0, this->rg0_move_threshold_, this->rg0_still_threshold_);
