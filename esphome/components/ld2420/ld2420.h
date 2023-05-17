@@ -23,23 +23,23 @@ static const uint16_t CMD_DISABLE_CONF = 0x00FE;
 static const uint16_t CMD_READ_VERSION = 0x0000;
 static const uint16_t CMD_WRITE_REGISTER = 0x0001;
 static const uint16_t CMD_READ_REGISTER = 0x0002;
-static const uint16_t CMD_PARM_HIGH_TRESH = 0x0012;
-static const uint16_t CMD_PARM_LOW_TRESH = 0x0021;
+static const uint16_t CMD_PARM_HIGH_TRESH = 0x0000;
+static const uint16_t CMD_PARM_LOW_TRESH = 0x0000;
 static const uint16_t CMD_WRITE_ABD_PARAM = 0x0007;
 static const uint16_t CMD_READ_ABD_PARAM = 0x0008;
-static const uint16_t CMD_WRITE_SYS_PARAM = 0x0012;
-static const uint16_t CMD_READ_SYS_PARAM = 0x0013;
+static const uint16_t CMD_WRITE_SYS_PARAM = 0x0000;
+static const uint16_t CMD_READ_SYS_PARAM = 0x0000;
 static const uint16_t CMD_READ_SERIAL_NUM = 0x0011;
 
-static const uint16_t CMD_MAXDIST_DURATION = 0x0060;
-static const uint16_t CMD_QUERY = 0x0061;
-static const uint16_t CMD_ENGINEERING_MODE = 0x0062;
-static const uint16_t CMD_NORMAL_MODE = 0x0063;
-static const uint16_t CMD_GATE_SENS = 0x0064;
+static const uint16_t CMD_MAXDIST_DURATION = 0x0000;
+static const uint16_t CMD_QUERY = 0x0000;
+static const uint16_t CMD_ENGINEERING_MODE = 0x0000;
+static const uint16_t CMD_NORMAL_MODE = 0x0000;
+static const uint16_t CMD_GATE_SENS = 0x0000;
 
 static const uint16_t CMD_BAUD_RATE = 0x00A1;  // 0x0001-0x0008 9600 .. doubles on increment up to 460800
-static const uint16_t CMD_FACTORY_RESET = 0x00A2;
-static const uint16_t CMD_RESTART = 0x00A3;
+static const uint16_t CMD_FACTORY_RESET = 0x0000;
+static const uint16_t CMD_RESTART = 0x0000;
 
 
 
